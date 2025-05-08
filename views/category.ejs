@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= category %> - 动漫游戏论坛</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* 从home.html复制的样式 */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 200px;
+            align-items: center;
+        }
+        .sort-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .sort-btn {
+            padding: 10px 16px;
+            border: 1px solid #e1e1e1;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #000000;
+        }
+        .sort-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .sort-btn:hover {
+            background-color: #f0f0f0;
+        }
+        .pagination {
+            display: flex;
+            gap: 5px;
+        }
+        .page-btn {
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #fffca0;
+        }
+        .page-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .page-btn:hover:not(.active) {
+            background-color: #03497b;
+        }
+        .page-dots {
+            padding: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <a id="top" name="top"></a>
+    <%- include('partials/header') %>
+    
+    <!-- 主要内容区域 - 保持与home.html相同的结构 -->
+    <div class="main-content">
+        <!-- 左侧内容区 -->
+        <div class="left-content">
+            <% if (resources.length === 0) { %>
+                <div class="no-results">暂无资源，试试其他筛选条件</div>
+            <% } else { %>
+                <% resources.forEach(resource => { %>
+                    <div class="content-item" data-id="<%= resource._id %>">
+                        <div class="item-image">
+                            <img src="<%= resource.images[0] || '/images/placeholder.jpg' %>" 
+                                 alt="<%= resource.title %>"
+                                 loading="lazy">
+                        </div>
+                        <div class="item-text">
+                            <h3 class="item-title"><%= resource.title %></h3>
+                            <p class="item-description"><%= resource.description %></p>
+                            <div class="item-meta">
+                                <span>浏览: <%= resource.views || 0 %></span>
+                                <span>发布于: <%= new Date(resource.createdAt).toLocaleDateString() %></span>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } %>
+        </div>
+        
+        <!-- 右侧内容区 - 保持与home.html相同的结构 -->
+        <div class="right-content">
+            <div class="sidebar-section">
+                <div class="daily-updates-title">最近更新</div>
+                <ul class="update-list">
+                    <% recentUpdates.forEach(update => { %>
+                        <li class="update-item" data-id="<%= update._id %>">
+                            <div class="update-content"><%= update.title %></div>
+                            <div class="update-time"><%= new Date(update.createdAt).toLocaleString() %></div>
+                        </li>
+                    <% }); %>
+                </ul>
+            </div>
+            
+            <% if (user) { %>
+                <div class="sidebar-section">
+                    <div class="user-info">
+                        <h3>欢迎回来, <%= user.username %></h3>
+                        <p>余额: <%= user.balance %> 元</p>
+                        <a href="/profile" class="profile-link">个人中心</a>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- 分页和排序容器 - 保持与home.html相同的结构和功能 -->
+    <div class="pagination-container">
+        <div class="sort-options">
+            <span>排序方式：</span>
+            <a href="/category/<%= category %>?page=1&sort=createdAt" 
+               class="sort-btn <%= currentSort === 'createdAt' ? 'active' : '' %>">
+               最新发布
+            </a>
+            <a href="/category/<%= category %>?page=1&sort=views" 
+               class="sort-btn <%= currentSort === 'views' ? 'active' : '' %>">
+               最多浏览
+            </a>
+        </div>
+        
+        <div class="pagination">
+            <% if (pagination.hasPrev) { %>
+                <a href="/category/<%= category %>?page=<%= pagination.page - 1 %>&sort=<%= currentSort %>#top" class="page-btn">上一页</a>
+            <% } %>
+            
+            <!-- 智能分页显示（与home.html相同） -->
+            <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+                <% if (i === 1 || i === pagination.totalPages || Math.abs(i - pagination.page) <= 2) { %>
+                    <a href="/category/<%= category %>?page=<%= i %>&sort=<%= currentSort %>#top" 
+                        class="page-btn <%= i === pagination.page ? 'active' : '' %>">
+                        <%= i %>
+                     </a>
+                <% } else if (Math.abs(i - pagination.page) === 3) { %>
+                    <span class="page-dots">...</span>
+                <% } %>
+            <% } %>
+            
+            <% if (pagination.hasNext) { %>
+                <a href="/category/<%= category %>?page=<%= pagination.page + 1 %>&sort=<%= currentSort %>#top" class="page-btn">下一页</a>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="loading" id="loadingIndicator">
+        加载中，请稍候...
+    </div>
+
+    <!-- 从home.html复制的JavaScript -->
+    <script src="/public/js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加页面跳转时的加载指示器
+            document.querySelectorAll('.page-btn, .sort-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    if (!this.classList.contains('active')) {
+                        document.getElementById('loadingIndicator').style.display = 'block';
+                    }
+                });
+            });
+            
+            // 资源项点击处理
+            document.querySelectorAll('.content-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    window.location.href = `/resources/${this.dataset.id}`;
+                });
+            });
+            
+            // 恢复滚动位置
+            if (sessionStorage.getItem('scrollPosition')) {
+                window.scrollTo(0, parseInt(sessionStorage.getItem('scrollPosition')));
+                sessionStorage.removeItem('scrollPosition');
+            }
+        });
+        
+        // 保存滚动位置
+        window.addEventListener('beforeunload', function() {
+            sessionStorage.setItem('scrollPosition', window.scrollY);
+        });
+    </script>
+</body>
+</html>

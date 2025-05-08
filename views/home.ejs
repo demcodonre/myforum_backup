@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>漫游小站 - 首页</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/png;base64,data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAoxJREFUOE+Nk91L02EUxz/Pb1sjN52uaROicGVvJJFO6iZveqHLom4koz+gSKsVFBRmRa9TRzCYFMWKggItzYpWjDLDZl0VFJlp4XK9aMyY6Zx7Yr/JT3sROhfPxXnO93PO9+E84uLt7zIpFYQAJIyMDFF7aDOWHxGaXFVkGI1s9zVQOr+QqnVrIFWXPpBSIq48SEhFKGoiFZG+txzesQqTIvlY7+bd5684Dx/CqNPz5uwZcs0mDaCirj5MSk0N6EaiWJsOMHeRA4fNhkxCR897ZmVmsjAvF0UddTJ+A4zFfxK678G5bDaR3l6Wj4zyOpHAUbYa4wwDb1ta2bmyFDEFogFSftrvnKPmYAU5Vqvq0rVnLydOncRgMKiiUOgZsvUepY552ggTAMmX/m56nnmprXejKIJYbBiv14vL5dI6pppcrqyiomTF34C7jR5arh5l4Ns3FEWhs7OT8vJyurq6JkeW4N/noqJo2Z8AaLx0gP27tuAsKVEFgUCAG9dv4Gvw/TaBf1cl25zFfwOaLlfjq9tNtsWiCoLBIGazGafTqQHC4TCvPB7WLl2i5bRHjA7203armvra49hsNo7V1DAWHeKI+6xanPJ/ze9nfSxGTsbMdG7qHqQK8gJunva+wJqfz2KjkXyLhQsfPrBp61Y+fwojQs/ZWLQUMbF44zrd5CLp4zE2PD7NzMICEJJIdIi8rCziiQThgUGyM83YMkxIIVAmdmncoE8BxiTomNX/mrK+ZmbY7XwfHqbjXTeO3FwW2u3pf/KPSAqBuB4clYmkAcfLZooNfehMJtVb2mBaNY0+fdfYFpc/4zpK2s+zYI6CUPT/bjdNVtx8EpexUYWyR3XYC6xM/Zn/Q/oFti8JubAe3/gAAAAASUVORK5CYII=" />
+    <style>
+        /* 新增分页和排序样式 */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 200px;
+            align-items: center;
+        }
+        .sort-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .sort-btn {
+            padding: 10px 16px;
+            border: 1px solid #e1e1e1;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #000000;
+        }
+        .sort-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .sort-btn:hover {
+            background-color: #f0f0f0;
+        }
+        .pagination {
+            display: flex;
+            gap: 5px;
+        }
+        .page-btn {
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #fffca0;
+        }
+        .page-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .page-btn:hover:not(.active) {
+            background-color: #03497b;
+        }
+        .page-dots {
+            padding: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <a id="top" name="top"></a>
+    <%- include('partials/header') %>
+    
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+        <!-- 左侧内容区 -->
+        <div class="left-content">
+            <% if (resources.length === 0) { %>
+                <div class="no-results">暂无资源，试试其他筛选条件</div>
+            <% } else { %>
+                <% resources.forEach(resource => { %>
+                    <div class="content-item" data-id="<%= resource._id %>">
+                        <div class="item-image">
+                            <img src="<%= resource.images[0] || '/images/placeholder.jpg' %>" 
+                                 alt="<%= resource.title %>"
+                                 loading="lazy"> <!-- 添加懒加载 -->
+                        </div>
+                        <div class="item-text">
+                            <h3 class="item-title"><%= resource.title %></h3>
+                            <p class="item-description"><%= resource.description %></p>
+                            <div class="item-meta">
+                                <span>浏览: <%= resource.views || 0 %></span>
+                                <span>发布于: <%= new Date(resource.createdAt).toLocaleDateString() %></span>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } %>
+        </div>
+        
+        <!-- 右侧内容区 -->
+        <div class="right-content">
+            <div class="sidebar-section">
+                <div class="daily-updates-title">最近更新</div>
+                <ul class="update-list">
+                    <!-- 这里由JavaScript动态填充 -->
+                </ul>
+            </div>
+            
+            <% if (user) { %>
+                <div class="sidebar-section">
+                    <div class="user-info">
+                        <h3>欢迎回来, <%= user.username %></h3>
+                        <p>余额: <%= user.balance %> 元</p>
+                        <a href="/profile" class="profile-link">个人中心</a>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- 排序和分页容器 -->
+    <div class="pagination-container">
+        <div class="sort-options">
+            <span>排序方式：</span>
+            <a href="/?page=1&sort=createdAt" 
+               class="sort-btn <%= currentSort === 'createdAt' ? 'active' : '' %>">
+               最新发布
+            </a>
+            <a href="/?page=1&sort=views" 
+               class="sort-btn <%= currentSort === 'views' ? 'active' : '' %>">
+               最多浏览
+            </a>
+        </div>
+        
+        <div class="pagination">
+            <% if (pagination.hasPrev) { %>
+                <a href="/?page=<%= pagination.page - 1 %>&sort=<%= currentSort %>#top" class="page-btn">上一页</a>
+            <% } %>
+            
+            <!-- 智能分页显示（最多显示7个页码） -->
+            <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+                <% if (i === 1 || i === pagination.totalPages || Math.abs(i - pagination.page) <= 2) { %>
+                    <a href="/?page=<%= i %>&sort=<%= currentSort %>#top" 
+                        class="page-btn <%= i === pagination.page ? 'active' : '' %>">
+                        <%= i %>
+                     </a>
+                <% } else if (Math.abs(i - pagination.page) === 3) { %>
+                    <span class="page-dots">...</span>
+                <% } %>
+            <% } %>
+            
+            <% if (pagination.hasNext) { %>
+                <a href="/?page=<%= pagination.page + 1 %>&sort=<%= currentSort %>#top" class="page-btn">下一页</a>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="loading" id="loadingIndicator">
+        加载中，请稍候...
+    </div>
+
+    <script src="/public/js/script.js"></script>
+    <script>
+        // 增强的页面加载逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加页面跳转时的加载指示器
+            document.querySelectorAll('.page-btn, .sort-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    if (!this.classList.contains('active')) {
+                        document.getElementById('loadingIndicator').style.display = 'block';
+                    }
+                });
+            });
+            
+            // 资源项点击处理
+            document.querySelectorAll('.content-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    window.location.href = `/resources/${this.dataset.id}`;
+                });
+            });
+            
+            // 如果是从其他页面跳转回来，滚动到之前的位置
+            if (sessionStorage.getItem('scrollPosition')) {
+                window.scrollTo(0, parseInt(sessionStorage.getItem('scrollPosition')));
+                sessionStorage.removeItem('scrollPosition');
+            }
+        });
+        
+        // 在离开页面时保存滚动位置
+        window.addEventListener('beforeunload', function() {
+            sessionStorage.setItem('scrollPosition', window.scrollY);
+        });
+    </script>
+    <script src="/js/script.js"></script>
+</body>
+</html>

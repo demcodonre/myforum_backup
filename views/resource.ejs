@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= resource.title %> - 动漫论坛
+    </title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* 详情页专属样式 */
+        .resource-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            /* 保持2列布局 */
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .image-gallery img {
+            width: 100%;
+            height: auto;
+            /* 关键修改：高度自适应 */
+            aspect-ratio: 16/9;
+            /* 设置默认宽高比（可选） */
+            object-fit: contain;
+            /* 完整显示图片（不裁剪） */
+            border-radius: 6px;
+            background: #f5f5f5;
+            /* 为透明图片添加背景色 */
+        }
+
+        .back-button {
+            display: block;
+            width: 120px;
+            margin: 20px auto;
+            padding: 10px;
+            background: #3498db;
+            color: white;
+            text-align: center;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        .locked-content {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .btn-purchase {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 15% auto;
+            padding: 20px;
+            width: 300px;
+            border-radius: 5px;
+        }
+
+        .close {
+            float: right;
+            cursor: pointer;
+        }
+
+        .btn-confirm {
+            padding: 8px 16px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('partials/header') %>
+
+        <div class="resource-container">
+            <h1 class="resource-title">
+                <%= resource.title %>
+            </h1>
+
+            <!-- 图片展示区 -->
+            <div class="image-gallery">
+                <% resource.images.forEach(image=> { %>
+                    <img src="<%= image %>" alt="<%= resource.title %>">
+                    <% }); %>
+            </div>
+
+            <!-- 文本内容 -->
+            <!-- 在resource-content部分修改 -->
+            <div class="resource-content">
+                <% if (hasPurchased) { %>
+                    <%= content %>
+                        <% } else { %>
+                            <div class="locked-content">
+                                <p>此内容需要支付 ¥<%= resource.price %> 解锁</p>
+                                <button id="purchaseBtn" class="btn-purchase">立即兑换</button>
+                            </div>
+                            <% } %>
+            </div>
+
+            <!-- 添加兑换模态框 -->
+            <div id="purchaseModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>确认兑换</h3>
+                    <p>确定要花费 ¥<%= resource.price %> 兑换此内容吗？</p>
+                    <button id="confirmPurchase" class="btn-confirm">确认兑换</button>
+                </div>
+            </div>
+
+
+
+
+            <!-- 返回按钮 -->
+            <a href="javascript:history.back()" class="back-button">返回</a>
+        </div>
+
+        <script>
+            // 兑换功能
+            const purchaseBtn = document.getElementById('purchaseBtn');
+            const modal = document.getElementById('purchaseModal');
+            const confirmBtn = document.getElementById('confirmPurchase');
+            const closeBtn = document.querySelector('.close');
+
+            if (purchaseBtn) {
+                purchaseBtn.addEventListener('click', () => {
+                    modal.style.display = 'block';
+                });
+            }
+
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            confirmBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/resources/purchase', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            resourceId: '<%= resource._id %>'
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        if (result.alreadyPurchased) {
+                            alert('您已购买过此内容');
+                        } else {
+                            alert('兑换成功！\n解压码www.subdom.blog\n请将文件下载下来后，在手机文件管理器中解压，播放\n不要在线解压，会违规播放不了,资源有可能会消失！！\n！！！不要在线解压！！！');
+                            // 显示内容并更新余额显示
+                            document.querySelector('.locked-content').innerHTML = result.content;
+                            // 如果有显示余额的地方，可以更新
+                            const balanceElements = document.querySelectorAll('.balance');
+                            if (balanceElements) {
+                                balanceElements.forEach(el => {
+                                    el.textContent = '¥' + result.newBalance.toFixed(2);
+                                });
+                            }
+                        }
+                    } else {
+                        alert(result.message || '兑换失败');
+                    }
+
+                    modal.style.display = 'none';
+                } catch (err) {
+                    console.error('兑换错误:', err);
+                    alert('网络错误，请重试');
+                }
+            });
+
+        </script>
+
+</body>
+
+</html>

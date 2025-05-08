@@ -1,0 +1,57 @@
+.admin-container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+  }
+  
+  .schema-form, .schema-table {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .btn-delete {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  /* 管理员导航菜单 */
+.admin-nav {
+  background: #2c3e50;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.admin-nav ul {
+  display: flex;
+  list-style: none;
+  gap: 15px;
+}
+
+.admin-nav a {
+  color: white;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.admin-nav a:hover {
+  background: #3498db;
+}

@@ -1,0 +1,36 @@
+<header class="header">
+    <div class="logo">
+        <a href="https://www.subdom.blog" class="blog-link" target="_blank">M漫游小站M</a>
+    </div>
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="若无反应，请点击左侧小站，再尝试搜索" id="searchInput">
+            <button class="search-btn">搜索</button>
+        </div>
+        <div class="search-history" id="searchHistory"></div>
+        <div class="autocomplete-results" id="autocompleteResults"></div>
+    </div>
+    <div class="categories">
+        <a href="/category/anime" class="category">动画</a>
+        <a href="/category/comic" class="category">漫画</a>
+        <a href="/category/game" class="category">游戏</a>
+        <a href="/category/video" class="category">视频</a>
+        <% if (typeof user !=='undefined' && user) { %>
+            <a href="/profile" class="category">
+                <span class="username">
+                    <%= user.username %>
+                </span>
+                <span class="user-icon">👤</span>
+            </a>
+        <% } else { %>
+            <a href="/login" class="category" id="authDropdown">
+                <span>登录/注册</span>
+            </a>
+            <div class="dropdown-menu" id="authMenu">
+                <a href="/login">登录</a>
+                <a href="/register">注册</a>
+            </div>
+        <% } %>
+    </div>
+    <!-- <link rel="icon" href="data:image/png;base64,data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAoxJREFUOE+Nk91L02EUxz/Pb1sjN52uaROicGVvJJFO6iZveqHLom4koz+gSKsVFBRmRa9TRzCYFMWKggItzYpWjDLDZl0VFJlp4XK9aMyY6Zx7Yr/JT3sROhfPxXnO93PO9+E84uLt7zIpFYQAJIyMDFF7aDOWHxGaXFVkGI1s9zVQOr+QqnVrIFWXPpBSIq48SEhFKGoiFZG+txzesQqTIvlY7+bd5684Dx/CqNPz5uwZcs0mDaCirj5MSk0N6EaiWJsOMHeRA4fNhkxCR897ZmVmsjAvF0UddTJ+A4zFfxK678G5bDaR3l6Wj4zyOpHAUbYa4wwDb1ta2bmyFDEFogFSftrvnKPmYAU5Vqvq0rVnLydOncRgMKiiUOgZsvUepY552ggTAMmX/m56nnmprXejKIJYbBiv14vL5dI6pppcrqyiomTF34C7jR5arh5l4Ns3FEWhs7OT8vJyurq6JkeW4N/noqJo2Z8AaLx0gP27tuAsKVEFgUCAG9dv4Gvw/TaBf1cl25zFfwOaLlfjq9tNtsWiCoLBIGazGafTqQHC4TCvPB7WLl2i5bRHjA7203armvra49hsNo7V1DAWHeKI+6xanPJ/ze9nfSxGTsbMdG7qHqQK8gJunva+wJqfz2KjkXyLhQsfPrBp61Y+fwojQs/ZWLQUMbF44zrd5CLp4zE2PD7NzMICEJJIdIi8rCziiQThgUGyM83YMkxIIVAmdmncoE8BxiTomNX/mrK+ZmbY7XwfHqbjXTeO3FwW2u3pf/KPSAqBuB4clYmkAcfLZooNfehMJtVb2mBaNY0+fdfYFpc/4zpK2s+zYI6CUPT/bjdNVtx8EpexUYWyR3XYC6xM/Zn/Q/oFti8JubAe3/gAAAAASUVORK5CYII=" /> -->
+</header>

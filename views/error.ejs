@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title><%= typeof title !== 'undefined' ? title : '错误' %> - 动漫论坛</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .error-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        <% if (typeof isDev !== 'undefined' && isDev) { %>
+            .error-details {
+                display: block;
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #f8f9fa;
+                border: 1px solid #eee;
+            }
+        <% } %>
+    </style>
+</head>
+<body>
+    <%- include('partials/header') %>
+    
+    <div class="error-container">
+        <h1><%= typeof title !== 'undefined' ? title : '服务器错误' %></h1>
+        <p><%= typeof message !== 'undefined' ? message : '发生未知错误' %></p>
+        
+        <% if (typeof isDev !== 'undefined' && isDev && typeof error !== 'undefined' && error) { %>
+            <div class="error-details">
+                <h3>错误详情：</h3>
+                <% if (error.stack) { %>
+                    <pre><%= error.stack %></pre>
+                <% } else { %>
+                    <pre><%= JSON.stringify(error, null, 2) %></pre>
+                <% } %>
+                <p>路径：<%= typeof path !== 'undefined' ? path : req?.path %></p>
+                <p>时间：<%= new Date(timestamp).toLocaleString() %></p>
+            </div>
+        <% } %>
+        
+        <a href="/" class="button">返回首页</a>
+    </div>
+</body>
+</html>

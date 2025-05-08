@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>搜索 "<%= query %>" - 动漫论坛</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/header') %>
+    
+    <div class="main-content">
+        <!-- 搜索标题 -->
+        <div class="search-header">
+            <h2>搜索结果："<%= query %>"</h2>
+            <!-- <p>共找到 <%= results.length %> 条相关内容</p> -->
+        </div>
+
+        <!-- 左侧内容区 -->
+        <div class="left-content">
+            <% results.forEach(resource => { %>
+                <div class="content-item" data-id="<%= resource._id %>">
+                    <div class="item-image">
+                        <img src="<%= resource.images[0] || '/images/placeholder.jpg' %>" alt="<%= resource.title %>">
+                    </div>
+                    <div class="item-text">
+                        <h3 class="item-title"><%= resource.title %></h3>
+                        <p class="item-description"><%= resource.description %></p>
+                        <span class="item-category"><%= resource.category %></span>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+        
+        <!-- 右侧留空或添加搜索相关侧边栏 -->
+        <div class="right-content">
+            <div class="search-sidebar">
+                <h3>搜索提示</h3>
+                <br>
+                <h4>视频</h4>
+                <p>爱可  绘子  芃芃  小x 维妮</p>
+                <p>团子  anqi  雾岛  托尔  胡亥亥</p>
+                <p>哈宝  橙宝</p>
+            
+                <br>
+                <h4>游戏</h4>
+                <p>Under The Witch</p>
+                <p>蒂芙尼  践踏之塔  冒险家 </p>
+                <p>女妖  魅魔  忠臣</p>
+                <p>脚下正常生活</p>
+                <p>Surrendering  靴落物語</p>
+                <p>Escalation!  </p>
+
+                <br>
+                <h4>漫画</h4>
+                <p>deathhillz  1888  鱼翔浅底  pemdomi</p>
+                <p>toppogi(boko推荐)  dining(ryona推荐)</p>
+
+                <br>
+                <h4>动画</h4>
+                <p>mmd</p>
+            </div>
+        </div>
+    </div>
+
+<div class="sort-options">
+    <span>排序方式：</span>
+    <a href="/search?q=<%= query %>&page=1&sort=createdAt" 
+       class="sort-btn <%= currentSort === 'createdAt' ? 'active' : '' %>">
+        最新发布
+    </a>
+    <a href="/search?q=<%= query %>&page=1&sort=views" 
+       class="sort-btn <%= currentSort === 'views' ? 'active' : '' %>">
+        最多浏览
+    </a>
+</div>
+
+<% if (pagination && pagination.totalPages > 1) { %>
+    <div class="pagination">
+        <% if (pagination.page > 1) { %>
+            <a href="/search?q=<%= query %>&page=<%= pagination.page - 1 %>&sort=<%= currentSort %>" 
+               class="page-btn">上一页</a>
+        <% } %>
+        
+        <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+            <a href="/search?q=<%= query %>&page=<%= i %>&sort=<%= currentSort %>" 
+               class="page-btn <%= i === pagination.page ? 'active' : '' %>">
+               <%= i %>
+            </a>
+        <% } %>
+        
+        <% if (pagination.page < pagination.totalPages) { %>
+            <a href="/search?q=<%= query %>&page=<%= pagination.page + 1 %>&sort=<%= currentSort %>" 
+               class="page-btn">下一页</a>
+        <% } %>
+    </div>
+<% } %>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>

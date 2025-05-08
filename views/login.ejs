@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 动漫论坛</title>
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>欢迎回来</h1>
+                <p>请登录您的账号</p>
+            </div>
+            
+            <% if (typeof error !== 'undefined') { %>
+                <div class="alert alert-error"><%= error %></div>
+            <% } %>
+            
+            <form action="/login" method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" placeholder="请输入用户名" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" placeholder="请输入密码" required>
+                </div>
+                
+                <!-- 添加验证码输入 -->
+                <div class="form-group">
+                    <label for="captcha">验证码</label>
+                    <div class="captcha-group">
+                        <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required>
+                        <img src="/captcha" alt="验证码" class="captcha-img" id="captchaImage">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary">登录</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>还没有账号？ <a href="/register">立即注册</a></p>
+                <a href="/forgot-password" class="text-muted">忘记密码？</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 点击刷新验证码
+        document.getElementById('captchaImage').addEventListener('click', function() {
+            this.src = '/captcha?' + new Date().getTime();
+        });
+    </script>
+</body>
+</html>
