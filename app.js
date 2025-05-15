@@ -12,9 +12,6 @@ const fileUpload = require('express-fileupload');
 const MongoStore = require('connect-mongo');
 
 
-// 环境变量检查
-console.log('[启动] 当前环境:', process.env.NODE_ENV || 'development');
-
 // 数据库连接
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/my-forum')
   .then(() => console.log(' MongoDB 已连接'))
@@ -27,32 +24,35 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/my-forum'
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 
-// 增强版会话配置
+// 会话配置
 app.use(session({
   secret: process.env.SESSION_SECRET,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
     collectionName: 'sessions',
-    ttl: 14 * 24 * 60 * 60 // = 14天
+    ttl: 14 * 24 * 60 * 60,
+    autoRemove: 'native' 
   }),
-  resave: false,
+  resave: true,  
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24小时
+    sameSite: 'lax', 
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
+app.use(express.static(path.join(__dirname, 'public')));
+
 // 文件上传配置
 app.use(fileUpload({
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024 },
   useTempFiles: true,
   tempFileDir: path.join(__dirname, 'temp'),
   createParentPath: true,
-  abortOnLimit: true // 超过大小限制直接拒绝
+  abortOnLimit: true 
 }));
 
 // 模板引擎配置
@@ -64,42 +64,25 @@ app.use((req, res, next) => {
   res.locals = {
     user: req.session.user || null,
     currentPath: req.path,
-    isDev: process.env.NODE_ENV === 'development' // 全局可用
+    isDev: process.env.NODE_ENV === 'development' 
   };
   next();
 });
 
-// 增强版管理员区域保护中间件
+// 管理员中间件
 app.use('/admin', (req, res, next) => {
-  // 确保 req.query 存在
-  req.query = req.query || {};
-  
-  // 从URL参数或请求体中获取adminKey
-  const adminKey = req.query.adminKey || req.body?.adminKey;
-
-  // 方式1：通过密钥验证
-  if (adminKey === process.env.ADMIN_SECRET_KEY) {
-    return next();
+  if (!req.session.user) {
+    return res.status(401).render('error', { 
+      title: '未授权',
+      message: '请先登录' 
+    });
   }
-
-  // 方式2：通过会话验证
-  if (req.session.user?.isAdmin) {
-    return next();
-  }
-
-  // 两种方式都未通过
-  res.status(403).render('error', {
-    title: '权限不足',
-    message: '您需要管理员权限才能访问此页面',
-    status: 403,
-    user: req.session.user || null,
-    isDev: process.env.NODE_ENV === 'development'
-  });
+  next();
 });
 
 // 路由配置
-app.use('/recharge', rechargeRoutes);
 app.use('/admin', adminRoutes);
+app.use('/recharge', rechargeRoutes);
 
 // 验证码路由
 app.get('/captcha', (req, res) => {
@@ -112,7 +95,6 @@ app.get('/captcha', (req, res) => {
     height: 40,
     fontSize: 50
   });
-  console.log('生成的验证码:', captcha.text); 
   req.session.captcha = captcha.text.toLowerCase();
   res.type('svg')
      .set('Cache-Control', 'no-store, no-cache')
@@ -120,9 +102,6 @@ app.get('/captcha', (req, res) => {
 });
 
 app.post('/verify-captcha', (req, res) => {
-  console.log('提交的验证码:', req.body.captcha);
-  console.log('会话中的验证码:', req.session.captcha);
-  console.log('当前会话ID:', req.sessionID);
   
   if (req.body.captcha?.toLowerCase() === req.session.captcha?.toLowerCase()) {
     res.send('验证成功');
@@ -134,40 +113,37 @@ app.post('/verify-captcha', (req, res) => {
 // 主路由
 app.use('/', require('./routes/auth'));
 
-// 增强版错误处理中间件
 app.use((err, req, res, next) => {
-  const isDev = process.env.NODE_ENV === 'development';
-  
   // 错误日志记录
   console.error(`[${new Date().toISOString()}] 错误:`, {
     path: req.path,
     method: req.method,
     status: err.status || 500,
     message: err.message,
-    stack: isDev ? err.stack : undefined,
+    stack: res.locals.isDev ? err.stack : undefined, 
     session: req.sessionID
   });
 
-  // 确保关键变量存在
+  // 错误响应数据
   const errorData = {
     title: err.title || '服务器错误',
     message: err.message || '服务器发生错误',
     status: err.status || 500,
-    error: isDev ? err : null,
-    isDev,
-    user: req.session.user || null,
+    user: res.locals.user,         
+    isDev: res.locals.isDev,       
+    error: res.locals.isDev ? err : null, 
     path: req.path,
     timestamp: new Date().toISOString()
   };
 
-  // 根据请求类型响应
+  // 响应处理
   if (req.accepts('html')) {
     res.status(errorData.status).render('error', errorData);
   } else {
-    res.status(errorData.status).json({
+    res.json({
       error: {
         message: errorData.message,
-        ...(isDev && { details: err.stack })
+        ...(res.locals.isDev && { details: err.stack }) 
       }
     });
   }

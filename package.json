@@ -27,10 +27,7 @@
     "express-session": "^1.18.1",
     "file-type": "^20.4.1",
     "helmet": "^8.1.0",
-    "hpp": "^0.2.3",
     "mongoose": "^8.13.2",
-    "svg-captcha": "^1.4.0",
-    "xss": "^1.0.15",
-    "xss-clean": "^0.1.4"
+    "svg-captcha": "^1.4.0"
   }
 }

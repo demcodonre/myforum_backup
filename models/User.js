@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.path('username').validate({
   validator: function (v) {
-    return /^[a-zA-Z0-9_\-]{3,20}$/.test(v); // 只允许字母数字下划线
+    return /^[a-zA-Z0-9_\-]{3,20}$/.test(v); 
   },
   message: '用户名包含非法字符'
 });

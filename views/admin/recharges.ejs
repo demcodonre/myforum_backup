@@ -77,132 +77,179 @@
       font-size: 24px;
       cursor: pointer;
     }
+
+    .danger-btn {
+      background-color: #e74c3c;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .danger-btn:hover {
+      background-color: #c0392b;
+    }
   </style>
 </head>
 
 <body>
   <%- include('../partials/header') %>
-  <%- include('../partials/admin-header') %> 
-    <div class="admin-container">
-      <h1>待审核充值</h1>
+    <%- include('../partials/admin-header') %>
+      <div class="admin-container">
+        <h1>待审核充值</h1>
+        <div class="action-buttons" style="margin-bottom: 20px;">
+          <button onclick="rejectAllOrders()" class="danger-btn">一键拒绝所有</button>
+        </div>
 
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>订单号</th>
-            <th>用户</th>
-            <th>金额</th>
-            <th>申请时间</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% recharges.forEach(order=> { %>
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td>
-                <%= order._id %>
-              </td>
-              <td>
-                <%= order.userId.username %>
-              </td>
-              <td>¥<%= order.amount %>
-              </td>
-              <td>
-                <%= order.createdAt.toLocaleString() %>
-              </td>
-              <td>
-                <button onclick="approveOrder('<%= order._id %>')">通过</button>
-                <button onclick="rejectOrder('<%= order._id %>')">拒绝</button> <!-- 改为rejectOrder -->
-              </td>
+              <th>订单号</th>
+              <th>用户</th>
+              <th>金额</th>
+              <th>申请时间</th>
+              <th>操作</th>
             </tr>
-            <% }); %>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 拒绝理由模态框 -->
-    <!-- <div id="rejectModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h3>输入拒绝理由</h3>
-        <textarea id="rejectReason" placeholder="请输入拒绝理由..."></textarea>
-        <button onclick="confirmReject()">确认拒绝</button>
+          </thead>
+          <tbody>
+            <% recharges.forEach(order=> { %>
+              <tr>
+                <td>
+                  <%= order._id %>
+                </td>
+                <td>
+                  <%= order.userId.username %>
+                </td>
+                <td>¥<%= order.amount %>
+                </td>
+                <td>
+                  <%= order.createdAt.toLocaleString() %>
+                </td>
+                <td>
+                  <button onclick="approveOrder('<%= order._id %>')">通过</button>
+                  <button onclick="rejectOrder('<%= order._id %>')">拒绝</button>
+                </td>
+              </tr>
+              <% }); %>
+          </tbody>
+        </table>
       </div>
-    </div> -->
 
-    <script>
-      // 通过订单
-      function approveOrder(orderId) {
-        fetch('/recharge/approve?adminKey=<%= process.env.ADMIN_SECRET_KEY %>', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ orderId })
-        })
-          .then(response => {
-            if (response.status === 403) {
-              throw new Error('无权访问，请检查管理员密钥');
-            }
-            if (!response.ok) {
-              return response.json().then(err => { throw new Error(err.message); });
-            }
-            return response.json();
+      <script>
+        // 通过订单
+        function approveOrder(orderId) {
+          fetch('/admin/recharge/approve?adminKey=<%= process.env.ADMIN_SECRET_KEY %>', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ orderId })
           })
-          .then(data => {
-            if (data.success) {
-              alert('审核通过，用户余额已更新');
-              location.reload();
-            } else {
-              throw new Error(data.message || '操作失败');
-            }
-          })
-          .catch(error => {
-            console.error('操作错误:', error);
-            alert(error.message || '网络错误，请重试');
-          });
-      }
+            .then(response => {
+              if (response.status === 403) {
+                throw new Error('无权访问，请检查管理员密钥');
+              }
+              if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message); });
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.success) {
+                alert('审核通过，用户余额已更新');
+                location.reload();
+              } else {
+                throw new Error(data.message || '操作失败');
+              }
+            })
+            .catch(error => {
+              console.error('操作错误:', error);
+              alert(error.message || '网络错误，请重试');
+            });
+        }
 
-      // 拒绝订单
-      function rejectOrder(orderId) {
-        const reason = prompt('请输入拒绝理由:', '未提供原因');
-        if (reason === null) return; // 用户取消
+        // 拒绝订单
+        function rejectOrder(orderId) {
+          const reason = prompt('请输入拒绝理由:', '未提供原因');
+          if (reason === null) return;
 
-        fetch('/recharge/reject?adminKey=<%= process.env.ADMIN_SECRET_KEY %>', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            orderId,
-            reason: reason || '未提供原因'
+          fetch('/admin/recharge/reject?adminKey=<%= process.env.ADMIN_SECRET_KEY %>', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              orderId,
+              reason: reason || '未提供原因'
+            })
           })
-        })
-          .then(response => {
-            if (response.status === 403) {
-              throw new Error('无权访问，请检查管理员密钥');
-            }
-            if (!response.ok) {
-              return response.json().then(err => { throw new Error(err.message); });
-            }
-            return response.json();
+            .then(response => {
+              if (response.status === 403) {
+                throw new Error('无权访问，请检查管理员密钥');
+              }
+              if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message); });
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.success) {
+                alert('已拒绝该充值申请');
+                location.reload();
+              } else {
+                throw new Error(data.message || '操作失败');
+              }
+            })
+            .catch(error => {
+              console.error('操作错误:', error);
+              alert(error.message || '网络错误，请重试');
+            });
+        }
+
+        function rejectAllOrders() {
+          if (!confirm('确定要拒绝所有待审核充值吗？此操作不可撤销！')) {
+            return;
+          }
+
+          const reason = prompt('请输入统一拒绝理由:', '批量操作拒绝');
+          if (reason === null) return;
+
+          fetch('/admin/recharge/reject-all?adminKey=<%= process.env.ADMIN_SECRET_KEY %>', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              reason: reason || '批量操作拒绝'
+            })
           })
-          .then(data => {
-            if (data.success) {
-              alert('已拒绝该充值申请');
-              location.reload();
-            } else {
-              throw new Error(data.message || '操作失败');
-            }
-          })
-          .catch(error => {
-            console.error('操作错误:', error);
-            alert(error.message || '网络错误，请重试');
-          });
-      }
-    </script>
+            .then(response => {
+              if (response.status === 403) {
+                throw new Error('无权访问，请检查管理员密钥');
+              }
+              if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message); });
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.success) {
+                alert(`已拒绝 ${data.rejectedCount} 条充值申请`);
+                location.reload();
+              } else {
+                throw new Error(data.message || '操作失败');
+              }
+            })
+            .catch(error => {
+              console.error('批量操作错误:', error);
+              alert(error.message || '网络错误，请重试');
+            });
+        }
+      </script>
 </body>
 
 </html>

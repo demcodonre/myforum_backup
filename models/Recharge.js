@@ -8,7 +8,7 @@ const rechargeSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
-  proofImage: { type: String }, // 用户上传的支付凭证
+  proofImage: { type: String }, 
   createdAt: { type: Date, default: Date.now },
   processedAt: Date, 
   rejectReason: String 

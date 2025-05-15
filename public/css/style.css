@@ -68,42 +68,6 @@ body {
   background-color: #2980b9;
 }
 
-.search-history, .autocomplete-results {
-  display: none;
-  position: absolute;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  background-color: rgb(115, 115, 115);
-  border: 1px solid #ffffff;
-  border-radius: 0 0 5px 5px;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-  z-index: 101;
-}
-
-.search-history-item, .autocomplete-item {
-  padding: 8px 15px;
-  cursor: pointer;
-}
-
-.search-history-item:hover, .autocomplete-item:hover {
-  background-color: #535353;
-}
-
-.search-history-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 15px;
-  font-size: 12px;
-  color: #777;
-  border-bottom: 1px solid #eee;
-}
-
-.clear-history {
-  color: #3498db;
-  cursor: pointer;
-}
-
 .categories {
   display: flex;
   gap: 20px;
@@ -144,21 +108,13 @@ body {
   overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
+  cursor: pointer;
+  position: relative;
 }
 
 .content-item:hover {
   transform: translateY(-5px);
 }
-
-/* .item-image {
-  height: 180px;
-  background-color: #ecf0f1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7f8c8d;
-  font-size: 18px;
-} */
 
 .item-image {
   height: 180px;
@@ -166,7 +122,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden; /* 防止图片溢出 */
+  overflow: hidden;
 }
 
 .item-image img {
@@ -174,7 +130,7 @@ body {
   max-height: 100%;
   width: auto;
   height: auto;
-  object-fit: contain; /* 关键属性：保持比例并完整显示 */
+  object-fit: contain;
 }
 
 .item-text {
@@ -195,6 +151,7 @@ body {
   font-size: 14px;
   line-height: 1.4;
 }
+
 /* 右侧内容区 */
 .right-content {
   flex: 1;
@@ -219,6 +176,7 @@ body {
 .update-item {
   padding: 12px 0;
   border-bottom: 1px solid #eee;
+  cursor: pointer;
 }
 
 .update-item:last-child {
@@ -234,36 +192,28 @@ body {
   color: #95a5a6;
 }
 
-/* 翻页功能 */
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin: 30px 0;
-  gap: 10px;
-}
-
-.page-btn {
-  padding: 8px 15px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
 .page-btn:hover {
   background-color: #2980b9;
 }
 
-.page-btn.active {
-  background-color: #2c3e50;
+.page-btn:hover:not(.active) {
+  background-color: #03497b;
 }
 
+.page-dots {
+  padding: 5px;
+}
 
-.content-item {
-  cursor: pointer; 
-  position: relative;
+.loading {
+  text-align: center;
+  padding: 20px;
+  display: none;
+}
+
+.page-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
 }
 
 /* 资源详情页样式补充 */
@@ -276,18 +226,110 @@ body {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* 资源元信息样式 */
+.resource-meta {
+    margin: 10px 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* 资源描述样式 */
+.resource-description {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.resource-description h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.resource-description p {
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
 .image-gallery {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  /* 2列布局 */
   gap: 15px;
   margin: 20px 0;
 }
 
 .image-gallery img {
   width: 100%;
-  height: 200px;
-  object-fit: cover;
+  height: auto;
+  /* 图片自适应 */
+  object-fit: contain;
+  border-radius: 6px;
+  background: #f5f5f5;
+}
+
+.back-button {
+  display: block;
+  width: 120px;
+  margin: 20px auto;
+  padding: 10px;
+  background: #3498db;
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+
+.locked-content {
+  background: #f5f5f5;
+  padding: 20px;
+  text-align: center;
   border-radius: 5px;
+}
+
+.btn-purchase {
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background: white;
+  margin: 15% auto;
+  padding: 20px;
+  width: 300px;
+  border-radius: 5px;
+}
+
+.close {
+  float: right;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  padding: 8px 16px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .resource-content {
@@ -307,57 +349,15 @@ body {
   .image-gallery {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .left-content {
     grid-template-columns: 1fr;
   }
-}
 
-/* 内容项图片样式 */
-.item-image img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-
-/* 右侧内容区样式 */
-.right-content {
-  flex: 1;
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.daily-updates-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
-}
-
-.update-list {
-  list-style: none;
-}
-
-.update-item {
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
-
-.update-item:last-child {
-  border-bottom: none;
-}
-
-.update-content {
-  margin-bottom: 5px;
-}
-
-.update-time {
-  font-size: 12px;
-  color: #95a5a6;
+  .search-container {
+    left: 10%;
+    width: 80%;
+  }
 }
 
 /* 活跃分类样式 */
@@ -376,14 +376,6 @@ body {
 .autocomplete-results {
   max-height: 300px;
   overflow-y: auto;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .search-container {
-      left: 10%;
-      width: 80%;
-  }
 }
 
 /* 搜索页专属样式 */
@@ -418,53 +410,26 @@ body {
   border-radius: 8px;
 }
 
-/* 翻页样式增强 */
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin: 30px 0;
-  flex-wrap: wrap;
-}
-
-.page-btn {
-  display: inline-block;
-  padding: 8px 15px;
-  margin: 0 5px;
-  background: #3498db;
-  color: white;
-  border-radius: 4px;
-  text-decoration: none;
-}
-
-.page-btn.active {
-  background: #2c3e50;
-}
-
 /* 排序按钮样式 */
 .sort-options {
   text-align: center;
   margin: 20px 0;
-  padding: 10px;
+  padding: 15px;
   background: #f5f5f5;
-  border-radius: 4px;
-}
-
-.sort-btn {
-  display: inline-block;
-  padding: 5px 15px;
-  margin: 0 5px;
-  background: #ecf0f1;
-  color: #333;
-  border-radius: 4px;
-  text-decoration: none;
-}
-
-.sort-btn.active {
-  background: #3498db;
-  color: white;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 /* 翻页样式 */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 200px;
+  align-items: center;
+}
+
 .pagination {
   display: flex;
   justify-content: center;
@@ -478,73 +443,39 @@ body {
   padding: 8px 15px;
   background-color: #3498db;
   color: white;
-  border: none;
-  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
   text-decoration: none;
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
 }
 
-.page-btn:hover {
-  background-color: #2980b9;
-}
-
-.page-btn.active {
-  background-color: #2c3e50;
-}
-
-/* 排序按钮样式 */
-.sort-options {
-  text-align: center;
-  margin: 20px 0;
-  padding: 15px;
-  background: #f5f5f5;
-  border-radius: 8px;
-}
 
 .sort-btn {
   display: inline-block;
-  padding: 8px 15px;
+  padding: 10px 16px;
   margin: 0 5px;
   background: #ecf0f1;
   color: #333;
-  border-radius: 4px;
+  border-radius: 6px;
   text-decoration: none;
   transition: all 0.3s;
+  border: 1px solid #e1e1e1;
 }
 
-.sort-btn:hover, .sort-btn.active {
-  background: #3498db;
+.sort-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.sort-btn.active {
+  background-color: #007bff;
   color: white;
-}
-
-/* 下拉菜单样式 */
-.dropdown-menu {
-  display: none;
-  position: absolute;
-  background: white;
-  min-width: 120px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  z-index: 1000;
-  border-radius: 4px;
-  right: 20px;
-  top: 60px;
-}
-
-.dropdown-menu a {
-  display: block;
-  padding: 10px 15px;
-  color: #333;
-  text-decoration: none;
+  border-color: #007bff;
 }
 
 .dropdown-menu a:hover {
   background: #f5f5f5;
-}
-
-#authDropdown:hover + #authMenu,
-#authMenu:hover {
-  display: block;
 }
 
 .username {
@@ -554,11 +485,3 @@ body {
 .user-icon {
   font-size: 16px;
 }
-
-
-
-
-
-
-
-

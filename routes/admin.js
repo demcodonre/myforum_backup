@@ -1,17 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
 const Recharge = require('../models/Recharge');
 const Resource = require('../models/Resource');
 const User = require('../models/User');
-const path = require('path');
 const fs = require('fs');
+const path = require('path')
 
 // 管理员验证中间件
 const isAdmin = (req, res, next) => {
-  // 从查询参数、请求体或会话中获取adminKey
   const adminKey = req.query.adminKey || req.body.adminKey;
-  
+
   if (adminKey === process.env.ADMIN_SECRET_KEY) {
     return next();
   }
@@ -29,33 +27,29 @@ const isAdmin = (req, res, next) => {
   });
 };
 
-// 资源添加页面 (GET 路由 - 新增)
+// 资源添加页面 
 router.get('/add-resource', isAdmin, (req, res) => {
   res.render('admin/add-resource', {
     user: req.session.user,
     categories: ['anime', 'comic', 'game', 'video'],
-    adminKey: req.query.adminKey // 传递adminKey到视图
+    adminKey: req.query.adminKey
   });
 });
 
-// 处理资源提交 (POST 路由)
+// 处理资源提交 
 router.post('/add-resource', isAdmin, async (req, res) => {
   try {
     const { title, description, category, price, content } = req.body;
-
-    // 验证输入
     if (!title || !category || isNaN(price) || price < 0) {
       return res.status(400).json({
         success: false,
         message: '标题、分类必填，价格需为有效数字'
       });
     }
-
-    // 处理图片上传
     const images = [];
     if (req.files && req.files['images']) {
-      const files = Array.isArray(req.files['images']) 
-        ? req.files['images'] 
+      const files = Array.isArray(req.files['images'])
+        ? req.files['images']
         : [req.files['images']];
 
       const uploadDir = path.join(__dirname, '../public/uploads');
@@ -99,7 +93,7 @@ router.post('/add-resource', isAdmin, async (req, res) => {
     });
   } catch (err) {
     console.error('添加资源错误:', err);
-    
+
     let errorMsg = '服务器错误';
     if (err.code === 11000) errorMsg = '资源标题已存在';
 
@@ -121,8 +115,8 @@ router.get('/recharges', isAdmin, async (req, res) => {
     res.render('admin/recharges', {
       recharges: pendingRecharges,
       user: req.session.user,
-      adminKey: process.env.NODE_ENV === 'development' 
-        ? process.env.ADMIN_SECRET_KEY 
+      adminKey: process.env.NODE_ENV === 'development'
+        ? process.env.ADMIN_SECRET_KEY
         : null
     });
   } catch (err) {
@@ -140,6 +134,7 @@ router.get('/recharges', isAdmin, async (req, res) => {
 router.post('/recharge/approve', isAdmin, async (req, res) => {
   try {
     const { orderId } = req.body;
+    
     const recharge = await Recharge.findByIdAndUpdate(
       orderId,
       { status: 'approved', processedAt: new Date() },
@@ -147,26 +142,35 @@ router.post('/recharge/approve', isAdmin, async (req, res) => {
     ).populate('userId');
 
     if (!recharge) {
-      return res.status(404).json({ success: false, message: '未找到该订单' });
+      return res.status(404).json({ 
+        success: false, 
+        message: '未找到该订单' 
+      });
     }
 
-    const user = await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
       recharge.userId._id,
       { $inc: { balance: recharge.amount } },
       { new: true }
-    );
+    ).lean();
+
+    if (req.session.user && recharge.userId._id.equals(req.session.user._id)) {
+      req.session.user.balance = updatedUser.balance;
+      await req.session.save(); 
+    }
 
     res.json({
       success: true,
-      newBalance: user.balance,
-      processedAt: recharge.processedAt
+      newBalance: updatedUser.balance,
+      processedAt: recharge.processedAt 
     });
+
   } catch (err) {
     console.error('审核通过错误:', err);
     res.status(500).json({
       success: false,
-      message: '审核失败',
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      message: '审核失败: ' + err.message,
+      error: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
 });
@@ -203,5 +207,35 @@ router.post('/recharge/reject', isAdmin, async (req, res) => {
     });
   }
 });
+
+// 一键拒绝
+router.post('/recharge/reject-all', isAdmin, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const result = await Recharge.updateMany(
+      { status: 'pending' },
+      {
+        status: 'rejected',
+        processedAt: new Date(),
+        rejectReason: reason || '批量操作拒绝'
+      }
+    );
+
+    res.json({
+      success: true,
+      rejectedCount: result.modifiedCount,
+      message: `已拒绝 ${result.modifiedCount} 条申请`
+    });
+  } catch (err) {
+    console.error('批量拒绝错误:', err);
+    res.status(500).json({
+      success: false,
+      message: '批量操作失败',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 
 module.exports = router;
