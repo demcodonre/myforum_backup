@@ -4,11 +4,9 @@
     </div>
     <div class="search-container">
         <div class="search-box">
-            <input type="text" class="search-input" placeholder="若无反应，请点击左侧小站，再尝试搜索" id="searchInput">
+            <input type="text" class="search-input" placeholder="输入搜索，任意搜索后侧栏有目录" id="searchInput">
             <button class="search-btn">搜索</button>
         </div>
-        <div class="search-history" id="searchHistory"></div>
-        <div class="autocomplete-results" id="autocompleteResults"></div>
     </div>
     <div class="categories">
         <a href="/category/anime" class="category">动画</a>

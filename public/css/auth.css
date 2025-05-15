@@ -144,12 +144,6 @@ body {
     font-size: 14px;
 }
 
-@media (max-width: 576px) {
-    .auth-card {
-        padding: 30px 20px;
-    }
-}
-
 .captcha-group {
     display: flex;
     gap: 10px;
@@ -169,4 +163,13 @@ body {
 
 .captcha-img:hover {
     opacity: 0.8;
+}
+
+
+
+
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 30px 20px;
+    }
 }
