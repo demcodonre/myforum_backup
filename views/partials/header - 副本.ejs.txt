@@ -7,6 +7,8 @@
             <input type="text" class="search-input" placeholder="若无反应，请点击左侧小站，再尝试搜索" id="searchInput">
             <button class="search-btn">搜索</button>
         </div>
+        <div class="search-history" id="searchHistory"></div>
+        <div class="autocomplete-results" id="autocompleteResults"></div>
     </div>
     <div class="categories">
         <a href="/category/anime" class="category">动画</a>

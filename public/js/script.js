@@ -1,14 +1,6 @@
-// 搜索历史数据
-let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
-
-// 自动补全数据
-const autocompleteData = [];
-
 // DOM 元素
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.querySelector('.search-btn');
-const searchHistoryEl = document.getElementById('searchHistory');
-const autocompleteResults = document.getElementById('autocompleteResults');
 
 // 防抖函数
 function debounce(fn, delay) {
@@ -19,89 +11,9 @@ function debounce(fn, delay) {
     };
 }
 
-// 显示搜索历史
-function showSearchHistory() {
-    if (searchHistory.length === 0) return;
-
-    searchHistoryEl.innerHTML = `
-        <div class="search-history-header">
-            <span>最近搜索</span>
-            <span class="clear-history">清除历史</span>
-        </div>
-        ${searchHistory.map(item => `
-            <div class="search-history-item">${item}</div>
-        `).join('')}
-    `;
-    searchHistoryEl.style.display = 'block';
-
-    // 历史项点击
-    document.querySelectorAll('.search-history-item').forEach(item => {
-        item.addEventListener('click', function () {
-            searchInput.value = this.textContent;
-            performSearch(this.textContent);
-        });
-    });
-
-    // 清除历史
-    document.querySelector('.clear-history').addEventListener('click', function (e) {
-        e.stopPropagation();
-        searchHistory = [];
-        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-        searchHistoryEl.style.display = 'none';
-    });
-}
-
-// 显示自动补全
-function showAutocompleteResults(suggestions = []) {
-    const inputValue = searchInput.value.toLowerCase();
-    if (!inputValue) {
-        autocompleteResults.style.display = 'none';
-        return;
-    }
-
-    const filteredData = suggestions.length > 0
-        ? suggestions
-        : autocompleteData.filter(item =>
-            item.toLowerCase().includes(inputValue) && !searchHistory.includes(item)
-        );
-
-    if (filteredData.length === 0) {
-        autocompleteResults.style.display = 'none';
-        return;
-    }
-
-    autocompleteResults.innerHTML = filteredData.map(item => `
-        <div class="autocomplete-item">${item}</div>
-    `).join('');
-    autocompleteResults.style.display = 'block';
-
-    // 添加补全项点击事件
-    document.querySelectorAll('.autocomplete-item').forEach(item => {
-        item.addEventListener('click', function () {
-            searchInput.value = this.textContent;
-            performSearch(this.textContent);
-        });
-    });
-}
-
 // 执行搜索
 function performSearch(term) {
     if (!term.trim()) return;
-
-    // 添加到搜索历史
-    if (!searchHistory.includes(term)) {
-        searchHistory.unshift(term);
-        if (searchHistory.length > 5) {
-            searchHistory.pop();
-        }
-        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-    }
-
-    // 隐藏下拉菜单
-    searchHistoryEl.style.display = 'none';
-    autocompleteResults.style.display = 'none';
-
-    // 跳转到搜索页面
     window.location.href = `/search?q=${encodeURIComponent(term)}`;
 }
 
@@ -128,7 +40,6 @@ async function loadRecentUpdates() {
                 </li>
             `).join('');
 
-            // 为更新项添加点击事件
             document.querySelectorAll('.update-item').forEach(item => {
                 item.addEventListener('click', handleContentItemClick);
             });
@@ -187,22 +98,6 @@ function setupCategoryFilters() {
 
 // 事件监听
 function setupEventListeners() {
-    // 搜索相关事件
-    searchInput.addEventListener('focus', showSearchHistory);
-    searchInput.addEventListener('input', debounce(function () {
-        const query = this.value.trim();
-        if (!query) {
-            autocompleteResults.style.display = 'none';
-            return;
-        }
-
-        fetch(`/api/search/suggest?q=${encodeURIComponent(query)}`)
-            .then(res => res.json())
-            .then(data => {
-                showAutocompleteResults(data.suggestions);
-            });
-    }, 300));
-
     searchInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             performSearch(this.value.trim());
@@ -212,15 +107,8 @@ function setupEventListeners() {
     searchBtn.addEventListener('click', function () {
         performSearch(searchInput.value.trim());
     });
-
-    // 全局点击隐藏下拉菜单
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.search-container')) {
-            searchHistoryEl.style.display = 'none';
-            autocompleteResults.style.display = 'none';
-        }
-    });
 }
+
 
 // 页面初始化
 function init() {
