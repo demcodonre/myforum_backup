@@ -49,6 +49,7 @@ async function loadRecentUpdates() {
     }
 }
 
+
 // 渲染资源列表
 function renderResources(resources) {
     const leftContent = document.querySelector('.left-content');
@@ -109,7 +110,6 @@ function setupEventListeners() {
     });
 }
 
-
 // 页面初始化
 function init() {
     setupEventListeners();
@@ -121,7 +121,7 @@ function init() {
         item.addEventListener('click', handleContentItemClick);
     });
 
-    // 添加排序按钮点击效果
+    // 排序按钮点击效果
     document.querySelectorAll('.sort-btn').forEach(btn => {
         btn.addEventListener('click', function (e) {
             e.preventDefault();

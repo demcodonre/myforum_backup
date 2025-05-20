@@ -32,14 +32,14 @@ app.use(session({
     mongoUrl: process.env.MONGODB_URI,
     collectionName: 'sessions',
     ttl: 14 * 24 * 60 * 60,
-    autoRemove: 'native' 
+    autoRemove: 'native'
   }),
-  resave: true,  
+  resave: true,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     httpOnly: true,
-    sameSite: 'lax', 
+    sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
@@ -52,7 +52,7 @@ app.use(fileUpload({
   useTempFiles: true,
   tempFileDir: path.join(__dirname, 'temp'),
   createParentPath: true,
-  abortOnLimit: true 
+  abortOnLimit: true
 }));
 
 // 模板引擎配置
@@ -64,7 +64,8 @@ app.use((req, res, next) => {
   res.locals = {
     user: req.session.user || null,
     currentPath: req.path,
-    isDev: process.env.NODE_ENV === 'development' 
+    siteUrl: process.env.SITE_URL,
+    isDev: process.env.NODE_ENV === 'development'
   };
   next();
 });
@@ -72,9 +73,9 @@ app.use((req, res, next) => {
 // 管理员中间件
 app.use('/admin', (req, res, next) => {
   if (!req.session.user) {
-    return res.status(401).render('error', { 
+    return res.status(401).render('error', {
       title: '未授权',
-      message: '请先登录' 
+      message: '请先登录'
     });
   }
   next();
@@ -97,12 +98,12 @@ app.get('/captcha', (req, res) => {
   });
   req.session.captcha = captcha.text.toLowerCase();
   res.type('svg')
-     .set('Cache-Control', 'no-store, no-cache')
-     .send(captcha.data);
+    .set('Cache-Control', 'no-store, no-cache')
+    .send(captcha.data);
 });
 
 app.post('/verify-captcha', (req, res) => {
-  
+
   if (req.body.captcha?.toLowerCase() === req.session.captcha?.toLowerCase()) {
     res.send('验证成功');
   } else {
@@ -120,7 +121,7 @@ app.use((err, req, res, next) => {
     method: req.method,
     status: err.status || 500,
     message: err.message,
-    stack: res.locals.isDev ? err.stack : undefined, 
+    stack: res.locals.isDev ? err.stack : undefined,
     session: req.sessionID
   });
 
@@ -129,9 +130,9 @@ app.use((err, req, res, next) => {
     title: err.title || '服务器错误',
     message: err.message || '服务器发生错误',
     status: err.status || 500,
-    user: res.locals.user,         
-    isDev: res.locals.isDev,       
-    error: res.locals.isDev ? err : null, 
+    user: res.locals.user,
+    isDev: res.locals.isDev,
+    error: res.locals.isDev ? err : null,
     path: req.path,
     timestamp: new Date().toISOString()
   };
@@ -143,7 +144,7 @@ app.use((err, req, res, next) => {
     res.json({
       error: {
         message: errorData.message,
-        ...(res.locals.isDev && { details: err.stack }) 
+        ...(res.locals.isDev && { details: err.stack })
       }
     });
   }

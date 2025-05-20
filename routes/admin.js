@@ -4,7 +4,9 @@ const Recharge = require('../models/Recharge');
 const Resource = require('../models/Resource');
 const User = require('../models/User');
 const fs = require('fs');
-const path = require('path')
+const path = require('path');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
 
 // 管理员验证中间件
@@ -135,7 +137,8 @@ router.get('/recharges', isAdmin, async (req, res) => {
 router.post('/recharge/approve', isAdmin, async (req, res) => {
   try {
     const { orderId } = req.body;
-    
+    const mongoose = require('mongoose');
+
     const recharge = await Recharge.findByIdAndUpdate(
       orderId,
       { status: 'approved', processedAt: new Date() },
@@ -143,10 +146,7 @@ router.post('/recharge/approve', isAdmin, async (req, res) => {
     ).populate('userId');
 
     if (!recharge) {
-      return res.status(404).json({ 
-        success: false, 
-        message: '未找到该订单' 
-      });
+      return res.status(404).json({ success: false, message: '未找到该订单' });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -155,23 +155,56 @@ router.post('/recharge/approve', isAdmin, async (req, res) => {
       { new: true }
     ).lean();
 
-    if (req.session.user && recharge.userId._id.equals(req.session.user._id)) {
-      req.session.user.balance = updatedUser.balance;
-      await req.session.save(); 
+    if (recharge.userId.invitedBy) {
+      await User.findByIdAndUpdate(
+        recharge.userId.invitedBy,
+        { $inc: { balance: 1, successfulInvites: 1 } }
+      );
+    }
+
+    const sessionCollection = mongoose.connection.db.collection('sessions');
+    const sessions = await sessionCollection.find({}).toArray();
+
+    const bulkOps = sessions
+      .filter(sessionDoc => {
+        try {
+          const session = JSON.parse(sessionDoc.session);
+          const sessionUser = session.user || (session.passport && session.passport.user);
+          return sessionUser?.id?.toString() === recharge.userId._id.toString();
+        } catch {
+          return false;
+        }
+      })
+      .map(sessionDoc => {
+        const session = JSON.parse(sessionDoc.session);
+        if (session.user) {
+          session.user.balance = updatedUser.balance;
+        } else if (session.passport?.user) {
+          session.passport.user.balance = updatedUser.balance;
+        }
+        return {
+          updateOne: {
+            filter: { _id: sessionDoc._id },
+            update: { $set: { session: JSON.stringify(session) } }
+          }
+        };
+      });
+
+    if (bulkOps.length > 0) {
+      await sessionCollection.bulkWrite(bulkOps);
     }
 
     res.json({
       success: true,
       newBalance: updatedUser.balance,
-      processedAt: recharge.processedAt 
+      processedAt: recharge.processedAt
     });
 
   } catch (err) {
     console.error('审核通过错误:', err);
     res.status(500).json({
       success: false,
-      message: '审核失败: ' + err.message,
-      error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      message: '审核失败: ' + err.message
     });
   }
 });

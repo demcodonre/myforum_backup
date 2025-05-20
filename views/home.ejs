@@ -1,135 +1,163 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-  <link rel="preload" href="/favicon.ico" as="image" type="image/x-icon">
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="preload" href="/favicon.ico" as="image" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>漫游小站 - 首页</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
     <a id="top" name="top"></a>
     <%- include('partials/header') %>
-    
-    <!-- 主要内容区 -->
-    <div class="main-content">
-        <!-- 左侧 -->
-        <div class="left-content">
-            <% if (resources.length === 0) { %>
-                <div class="no-results">暂无资源，试试其他筛选条件</div>
-            <% } else { %>
-                <% resources.forEach(resource => { %>
-                    <div class="content-item" data-id="<%= resource._id %>">
-                        <div class="item-image">
-                            <img src="<%= resource.images[0] || '/images/placeholder.jpg' %>" 
-                                 alt="<%= resource.title %>"
-                                 loading="lazy"> 
-                        </div>
-                        <div class="item-text">
-                            <h3 class="item-title"><%= resource.title %></h3>
-                            <p class="item-description"><%= resource.description %></p>
-                            <div class="item-meta">
-                                <span>浏览: <%= resource.views || 0 %></span>
-                                <span>发布于: <%= new Date(resource.createdAt).toLocaleDateString() %></span>
+
+        <!-- 主要内容区 -->
+        <div class="main-content">
+            <!-- 左侧 -->
+            <div class="left-content">
+                <% if (resources.length===0) { %>
+                    <div class="no-results">暂无资源，试试其他筛选条件</div>
+                    <% } else { %>
+                        <% resources.forEach(resource=> { %>
+                            <div class="content-item" data-id="<%= resource._id %>">
+                                <div class="item-image">
+                                    <img src="<%= resource.images[0] || '/images/placeholder.jpg' %>"
+                                        alt="<%= resource.title %>" loading="lazy">
+                                </div>
+                                <div class="item-text">
+                                    <h3 class="item-title">
+                                        <%= resource.title %>
+                                    </h3>
+                                    <p class="item-description">
+                                        <%= resource.description %>
+                                    </p>
+                                    <div class="item-meta">
+                                        <span>浏览: <%= resource.views || 0 %></span>
+                                        <span>发布于: <%= new Date(resource.createdAt).toLocaleDateString() %></span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                <% }); %>
-            <% } %>
-        </div>
-        
-        <!-- 右侧 -->
-        <div class="right-content">
-            <div class="sidebar-section">
-                <div class="daily-updates-title">最近更新</div>
-                <ul class="update-list">
-                    <!-- 这里由JavaScript动态填充 -->
-                </ul>
+                            <% }); %>
+                                <% } %>
             </div>
-            
-            <% if (user) { %>
+
+            <!-- 右侧 -->
+            <div class="right-content">
                 <div class="sidebar-section">
-                    <div class="user-info">
-                        <h3>欢迎回来, <%= user.username %></h3>
-                        <p>余额: <%= user.balance %> 元</p>
-                        <a href="/profile" class="profile-link">个人中心</a>
+                    <div class="daily-updates-title">最近更新</div>
+                    <ul class="update-list">
+                        <!-- 动态填充 -->
+                    </ul>
+                </div>
+
+                <!-- 高频词目录 -->
+                <div class="sidebar-section">
+                    <div class="directory-title">目录标签</div>
+                    <div class="directory-list">
+                        <!-- 固定标签 -->
+                        <a href="/search?q=安琪" class="directory-btn" title="安琪相关资源">
+                            安琪
+                        </a>
+                        <a href="/search?q=雾岛" class="directory-btn" title="雾岛相关资源">
+                            雾岛
+                        </a>
+
+                        <!-- 动态渲染 -->
+                        <% keywords.forEach(keyword=> { %>
+                            <a href="/search?q=<%= encodeURIComponent(keyword.text) %>" class="directory-btn"
+                                title="共 <%= keyword.count %> 部">
+                                <%= keyword.text %>
+                            </a>
+                            <% }); %>
                     </div>
                 </div>
-            <% } %>
+
+                <% if (user) { %>
+                    <div class="sidebar-section">
+                        <div class="user-info">
+                            <h3>欢迎回来, <%= user.username %>
+                            </h3>
+                            <p>余额: <%= user.balance %> 元</p>
+                            <a href="/profile" class="profile-link">个人中心</a>
+                        </div>
+                    </div>
+                    <% } %>
+            </div>
         </div>
-    </div>
 
-    <!-- 排序和分页容器 -->
-    <div class="pagination-container">
-        <div class="sort-options">
-            <span>排序方式：</span>
-            <a href="/?page=1&sort=createdAt" 
-               class="sort-btn <%= currentSort === 'createdAt' ? 'active' : '' %>">
-               最新发布
-            </a>
-            <a href="/?page=1&sort=views" 
-               class="sort-btn <%= currentSort === 'views' ? 'active' : '' %>">
-               最多浏览
-            </a>
+        <!-- 排序和分页容器 -->
+        <div class="pagination-container">
+            <div class="sort-options">
+                <span>排序方式：</span>
+                <a href="/?page=1&sort=createdAt" class="sort-btn <%= currentSort === 'createdAt' ? 'active' : '' %>">
+                    最新发布
+                </a>
+                <a href="/?page=1&sort=views" class="sort-btn <%= currentSort === 'views' ? 'active' : '' %>">
+                    最多浏览
+                </a>
+            </div>
+
+            <div class="pagination">
+                <% if (pagination.hasPrev) { %>
+                    <a href="/?page=<%= pagination.page - 1 %>&sort=<%= currentSort %>#top" class="page-btn">上一页</a>
+                    <% } %>
+
+                        <!-- 智能分页显示 -->
+                        <% for (let i=1; i <=pagination.totalPages; i++) { %>
+                            <% if (i===1 || i===pagination.totalPages || Math.abs(i - pagination.page) <=2) { %>
+                                <a href="/?page=<%= i %>&sort=<%= currentSort %>#top"
+                                    class="page-btn <%= i === pagination.page ? 'active' : '' %>">
+                                    <%= i %>
+                                </a>
+                                <% } else if (Math.abs(i - pagination.page)===3) { %>
+                                    <span class="page-dots">...</span>
+                                    <% } %>
+                                        <% } %>
+
+                                            <% if (pagination.hasNext) { %>
+                                                <a href="/?page=<%= pagination.page + 1 %>&sort=<%= currentSort %>#top"
+                                                    class="page-btn">下一页</a>
+                                                <% } %>
+            </div>
         </div>
-        
-        <div class="pagination">
-            <% if (pagination.hasPrev) { %>
-                <a href="/?page=<%= pagination.page - 1 %>&sort=<%= currentSort %>#top" class="page-btn">上一页</a>
-            <% } %>
-            
-            <!-- 智能分页显示 -->
-            <% for (let i = 1; i <= pagination.totalPages; i++) { %>
-                <% if (i === 1 || i === pagination.totalPages || Math.abs(i - pagination.page) <= 2) { %>
-                    <a href="/?page=<%= i %>&sort=<%= currentSort %>#top" 
-                        class="page-btn <%= i === pagination.page ? 'active' : '' %>">
-                        <%= i %>
-                     </a>
-                <% } else if (Math.abs(i - pagination.page) === 3) { %>
-                    <span class="page-dots">...</span>
-                <% } %>
-            <% } %>
-            
-            <% if (pagination.hasNext) { %>
-                <a href="/?page=<%= pagination.page + 1 %>&sort=<%= currentSort %>#top" class="page-btn">下一页</a>
-            <% } %>
+
+        <div class="loading" id="loadingIndicator">
+            加载中，请稍候...
         </div>
-    </div>
 
-    <div class="loading" id="loadingIndicator">
-        加载中，请稍候...
-    </div>
+        <script src="/public/js/script.js"></script>
+        <script>
 
-    <script src="/public/js/script.js"></script>
-    <script>
+            document.addEventListener('DOMContentLoaded', function () {
 
-        document.addEventListener('DOMContentLoaded', function() {
-
-            document.querySelectorAll('.page-btn, .sort-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    if (!this.classList.contains('active')) {
-                        document.getElementById('loadingIndicator').style.display = 'block';
-                    }
+                document.querySelectorAll('.page-btn, .sort-btn').forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        if (!this.classList.contains('active')) {
+                            document.getElementById('loadingIndicator').style.display = 'block';
+                        }
+                    });
                 });
-            });
-            
-            document.querySelectorAll('.content-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    window.location.href = `/resources/${this.dataset.id}`;
-                });
-            });
-            
-            if (sessionStorage.getItem('scrollPosition')) {
-                window.scrollTo(0, parseInt(sessionStorage.getItem('scrollPosition')));
-                sessionStorage.removeItem('scrollPosition');
-            }
-        });
 
-        window.addEventListener('beforeunload', function() {
-            sessionStorage.setItem('scrollPosition', window.scrollY);
-        });
-    </script>
-    <script src="/js/script.js"></script>
+                document.querySelectorAll('.content-item').forEach(item => {
+                    item.addEventListener('click', function () {
+                        window.location.href = `/resources/${this.dataset.id}`;
+                    });
+                });
+
+                if (sessionStorage.getItem('scrollPosition')) {
+                    window.scrollTo(0, parseInt(sessionStorage.getItem('scrollPosition')));
+                    sessionStorage.removeItem('scrollPosition');
+                }
+            });
+
+            window.addEventListener('beforeunload', function () {
+                sessionStorage.setItem('scrollPosition', window.scrollY);
+            });
+        </script>
+        <script src="/js/script.js"></script>
 </body>
+
 </html>

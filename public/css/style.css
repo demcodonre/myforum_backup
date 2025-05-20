@@ -489,6 +489,47 @@ body {
   display: block;
 }
 
+/* 目录样式 */
+.directory-title {
+    font-size: 20px;
+    font-weight: bold;
+    padding: 15px 20px;
+    border-bottom: 1px solid #c7c6c6;
+    background-color: #a9ffff;
+    color: #333;
+    margin-top: 15px;
+}
+
+.directory-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+}
+
+.directory-btn {
+    padding: 8px 16px;
+    background: #f0f0f0;
+    border-radius: 20px;
+    color: #333;
+    text-decoration: none;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+.directory-btn:hover {
+    background: #e0e0e0;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

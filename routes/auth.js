@@ -51,6 +51,7 @@ router.get('/', async (req, res) => {
     ]);
 
     const totalPages = Math.ceil(total / limit);
+    const keywords = await Resource.getPopularKeywords();
 
     res.render('home', {
       user: req.session.user || null,
@@ -63,7 +64,8 @@ router.get('/', async (req, res) => {
         prevPage: page > 1 ? page - 1 : null,
         nextPage: page < totalPages ? page + 1 : null
       },
-      currentSort: sortBy
+      currentSort: sortBy,
+      keywords: keywords.slice(0, 100)
     });
   } catch (err) {
     console.error('首页路由错误:', err);
@@ -82,7 +84,7 @@ router.get('/login', (req, res) => {
 });
 
 // 登录处理
-router.post('/login', async (req, res, next) => {
+router.post('/login', validateCaptcha, async (req, res, next) => {
   const { username, password } = req.body;
   if (!username?.trim() || !password?.trim()) {
     return res.status(400).render('login', {
@@ -93,8 +95,6 @@ router.post('/login', async (req, res, next) => {
   }
 
   try {
-    console.log(`登录尝试: 用户 ${username} 从 IP ${req.ip}`);
-
     const user = await User.findOne({ username }).select('+password');
 
     if (!user) {
@@ -133,12 +133,10 @@ router.post('/login', async (req, res, next) => {
           lastLogin: new Date()
         };
 
-
         user.loginAttempts = 0;
         user.lastLogin = new Date();
         await user.save();
 
-        console.log(`登录成功: 用户 ${username} (ID: ${user._id})`);
         const redirectPath = req.session.user.isAdmin ? '/admin' : '/';
         res.redirect(redirectPath);
 
@@ -172,23 +170,45 @@ router.get('/register', (req, res) => {
 // 注册处理
 router.post('/register', validateCaptcha, async (req, res) => {
   try {
-    const { username, email, password, confirmPassword } = req.body; 
+    const { username, email, password, confirmPassword, inviteCode } = req.body; 
+    
+    const inviteCodeToUse = inviteCode?.trim() || null;
+    
     if (password !== confirmPassword) {
       return res.status(400).render('register', {
         error: '两次输入的密码不一致',
         username,
-        email
+        email,
+        inviteCode: inviteCodeToUse 
       });
     }
 
-    const user = new User({ username, password, email });
+    const invitedBy = inviteCodeToUse ? await User.findOne({ inviteCode: inviteCodeToUse }) : null;
+    
+    if (inviteCodeToUse && !invitedBy) {
+      return res.status(400).render('register', {
+        error: '邀请码无效',
+        username,
+        email,
+        inviteCode: inviteCodeToUse
+      });
+    }
+
+    const user = new User({ 
+      username, 
+      password, 
+      email,
+      invitedBy: invitedBy?._id 
+    });
+
     await user.save();
 
     req.session.user = {
       id: user._id,
       username: user.username,
       email: user.email,
-      balance: user.balance
+      balance: user.balance,
+      inviteCode: user.inviteCode
     };
 
     res.redirect('/');
@@ -201,7 +221,8 @@ router.post('/register', validateCaptcha, async (req, res) => {
     res.status(400).render('register', {
       error: errorMsg,
       username: req.body.username,
-      email: req.body.email
+      email: req.body.email,
+      inviteCode: req.body.inviteCode 
     });
   }
 });
@@ -210,23 +231,26 @@ router.post('/register', validateCaptcha, async (req, res) => {
 // 个人中心
 router.get('/profile', requireLogin, async (req, res) => {
   try {
-    const user = await User.findById(req.session.user.id)
-      .populate('purchasedResources', 'title _id') // 关键修改：填充资源标题和ID
-      .exec();
+    const freshUser = await User.findById(req.session.user.id)
+      .select('inviteCode purchasedResources') 
+      .populate('purchasedResources', 'title _id')
+      .lean();
 
-    res.render('profile', { 
+    req.session.user = { 
+      ...req.session.user, 
+      inviteCode: freshUser.inviteCode 
+    };
+    await req.session.save();
+
+    res.render('profile', {
       user: {
-        ...req.session.user, // 保留原有session数据
-        purchasedResources: user.purchasedResources || [] // 添加填充后的资源数据
+        ...req.session.user,
+        purchasedResources: freshUser.purchasedResources || []
       }
     });
   } catch (err) {
     console.error('加载个人中心失败:', err);
-    res.status(500).render('error', {
-      title: '加载失败',
-      message: '无法获取已购资源列表',
-      user: req.session.user
-    });
+    res.status(500).render('error', { message: '加载失败' });
   }
 });
 
@@ -334,6 +358,7 @@ router.get('/category/:type', async (req, res) => {
     ]);
 
     const totalPages = Math.ceil(total / limit);
+    const keywords = await Resource.getPopularKeywords();
 
     res.render('category', {
       user: req.session.user || null,
@@ -346,7 +371,8 @@ router.get('/category/:type', async (req, res) => {
         hasPrev: page > 1,
         hasNext: page < totalPages
       },
-      currentSort: sortBy
+      currentSort: sortBy,
+      keywords: keywords.slice(0, 100)
     });
   } catch (err) {
     console.error('分类页错误:', err);
@@ -386,6 +412,7 @@ router.get('/search', async (req, res) => {
     ]);
 
     const totalPages = Math.ceil(total / limit);
+    const keywords = await Resource.getPopularKeywords();
 
     res.render('search', {
       user: req.session.user || null,
@@ -398,7 +425,8 @@ router.get('/search', async (req, res) => {
         hasPrev: page > 1,
         hasNext: page < totalPages
       },
-      currentSort: sortBy
+      currentSort: sortBy,
+      keywords: keywords.slice(0, 100)
     });
   } catch (err) {
     res.status(500).render('error', {
@@ -413,7 +441,7 @@ router.get('/api/recent-updates', async (req, res) => {
   try {
     const updates = await Resource.find()
       .sort({ createdAt: -1 })
-      .limit(14)
+      .limit(7)
       .select('title createdAt');
     res.json(updates);
   } catch (err) {
@@ -429,6 +457,17 @@ router.get('/api/resources/:category', async (req, res) => {
     res.json(resources);
   } catch (err) {
     res.status(500).json({ error: '获取资源失败' });
+  }
+});
+
+// 获取高频词API
+router.get('/api/popular-keywords', async (req, res) => {
+  try {
+    const keywords = await Resource.getPopularKeywords();
+    res.json(keywords);
+  } catch (err) {
+    console.error('获取高频词失败:', err);
+    res.status(500).json({ error: '获取高频词失败' });
   }
 });
 

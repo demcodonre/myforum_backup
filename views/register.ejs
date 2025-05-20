@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 
 <head>
-  <link rel="preload" href="/favicon.ico" as="image" type="image/x-icon">
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="preload" href="/favicon.ico" as="image" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册 - 漫游小站</title>
@@ -13,83 +13,89 @@
 
 <body>
     <%- include('partials/header') %>
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1>创建账号</h1>
-            </div>
-
-            <% if (typeof error !=='undefined' ) { %>
-                <div class="alert alert-error">
-                    <%= error %>
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1>创建账号</h1>
                 </div>
-                <% } %>
 
-                    <form action="/register" method="POST" class="auth-form">
-                        <div class="form-group">
-                            <label for="username">用户名</label>
-                            <input type="text" id="username" name="username"
-                                value="<%= typeof username !== 'undefined' ? username : '' %>"
-                                placeholder="请输入用户名，由字母数字下划线组成" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">电子邮箱</label>
-                            <input type="email" id="email" name="email"
-                                value="<%= typeof email !== 'undefined' ? email : '' %>" placeholder="邮箱仅用于账号找回"
-                                required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="password">密码</label>
-                            <input type="password" id="password" name="password" placeholder="请输入密码" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="confirmPassword">确认密码</label>
-                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="请再次输入密码"
-                                required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="captcha">验证码</label>
-                            <div class="captcha-group">
-                                <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required>
-                                <img src="/captcha" alt="验证码" class="captcha-img" id="captchaImage">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-primary">注册</button>
-                    </form>
-
-                    <div class="auth-footer">
-                        <p>已有账号？ <a href="/login">立即登录</a></p>
+                <% if (typeof error !=='undefined' ) { %>
+                    <div class="alert alert-error">
+                        <%= error %>
                     </div>
+                    <% } %>
+
+                        <form action="/register" method="POST" class="auth-form">
+                            <div class="form-group">
+                                <label for="username">用户名</label>
+                                <input type="text" id="username" name="username"
+                                    value="<%= typeof username !== 'undefined' ? username : '' %>"
+                                    placeholder="请输入用户名，由字母数字下划线组成" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">电子邮箱</label>
+                                <input type="email" id="email" name="email"
+                                    value="<%= typeof email !== 'undefined' ? email : '' %>" placeholder="邮箱仅用于账号找回"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password">密码</label>
+                                <input type="password" id="password" name="password" placeholder="请输入密码" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="confirmPassword">确认密码</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="请再次输入密码"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inviteCode">邀请码(选填)</label>
+                                <input type="text" id="inviteCode" name="inviteCode" class="form-control"
+                                    placeholder="如果有邀请码请填写">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="captcha">验证码</label>
+                                <div class="captcha-group">
+                                    <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required>
+                                    <img src="/captcha" alt="验证码" class="captcha-img" id="captchaImage">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-primary">注册</button>
+                        </form>
+
+                        <div class="auth-footer">
+                            <p>已有账号？ <a href="/login">立即登录</a></p>
+                        </div>
+            </div>
         </div>
-    </div>
 
-    <script>
-        // 客户端密码验证
-        const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirmPassword');
+        <script>
+            // 密码验证
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
 
-        function validatePasswords() {
-            if (passwordInput.value !== confirmPasswordInput.value) {
-                confirmPasswordInput.classList.add('password-mismatch');
-                confirmPasswordInput.classList.remove('password-match');
-            } else {
-                confirmPasswordInput.classList.remove('password-mismatch');
-                confirmPasswordInput.classList.add('password-match');
+            function validatePasswords() {
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    confirmPasswordInput.classList.add('password-mismatch');
+                    confirmPasswordInput.classList.remove('password-match');
+                } else {
+                    confirmPasswordInput.classList.remove('password-mismatch');
+                    confirmPasswordInput.classList.add('password-match');
+                }
             }
-        }
 
-        passwordInput.addEventListener('input', validatePasswords);
-        confirmPasswordInput.addEventListener('input', validatePasswords);
-        // 点击刷新验证码
-        document.getElementById('captchaImage').addEventListener('click', function () {
-            this.src = '/captcha?' + new Date().getTime();
-        });
-    </script>
+            passwordInput.addEventListener('input', validatePasswords);
+            confirmPasswordInput.addEventListener('input', validatePasswords);
+            // 刷新验证码
+            document.getElementById('captchaImage').addEventListener('click', function () {
+                this.src = '/captcha?' + new Date().getTime();
+            });
+        </script>
 </body>
 
 </html>
